@@ -25,12 +25,14 @@ async def latency_check(request: Request):
 
     results = {}
     for region in regions:
-        data = telemetry.get(region, [])
-        if not data:
+        # filter list of dicts by region
+        records = [r for r in telemetry if r["region"] == region]
+        if not records:
+            results[region] = {"error": "No data"}
             continue
 
-        latencies = [d["latency_ms"] for d in data]
-        uptimes = [d["uptime"] for d in data]
+        latencies = [r["latency_ms"] for r in records]
+        uptimes = [r["uptime_pct"] for r in records]
 
         results[region] = {
             "avg_latency": float(np.mean(latencies)),
@@ -40,3 +42,4 @@ async def latency_check(request: Request):
         }
 
     return results
+
